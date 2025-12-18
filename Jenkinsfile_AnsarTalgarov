@@ -26,12 +26,15 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh '''
-                    cd todoapp
-                    sh gradlew test || true
-                '''
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '''
+                        cd todoapp
+                        sh gradlew test
+                    '''
+                }
             }
         }
+
 
         stage('Docker Build') {
             steps {
