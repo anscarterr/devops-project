@@ -3,10 +3,11 @@ pipeline {
 
     environment {
         IMAGE_NAME = "tg/todo-app"
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_TAG  = "${BUILD_NUMBER}"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 git branch: 'main',
@@ -16,19 +17,31 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'cd todoapp && ./gradlew clean build -x test'
+                sh '''
+                    cd todoapp
+                    chmod +x gradlew
+                    ./gradlew clean build -x test
+                '''
             }
         }
 
         stage('Test') {
             steps {
-                sh 'cd todoapp && ./gradlew test || true'
+                sh '''
+                    cd todoapp
+                    chmod +x gradlew
+                    ./gradlew test || true
+                '''
             }
         }
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -f docker/Dockerfile_AnsarTalgarov -t $IMAGE_NAME:$IMAGE_TAG .'
+                sh '''
+                    docker build \
+                      -f docker/Dockerfile_AnsarTalgarov \
+                      -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                '''
             }
         }
 
@@ -37,14 +50,16 @@ pipeline {
                 branch 'main'
             }
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
                     sh '''
-                      echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                      docker push $IMAGE_NAME:$IMAGE_TAG
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
                     '''
                 }
             }
@@ -53,10 +68,14 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'CI/CD pipeline completed successfully!'
         }
         failure {
-            echo 'Pipeline failed!'
+            echo 'CI/CD pipeline failed!'
+        }
+        always {
+            cleanWs()
         }
     }
 }
+
