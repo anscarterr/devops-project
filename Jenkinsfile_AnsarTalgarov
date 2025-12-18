@@ -19,8 +19,7 @@ pipeline {
             steps {
                 sh '''
                     cd todoapp
-                    chmod +x gradlew
-                    ./gradlew clean build -x test
+                    sh gradlew clean build -x test
                 '''
             }
         }
@@ -29,8 +28,7 @@ pipeline {
             steps {
                 sh '''
                     cd todoapp
-                    chmod +x gradlew
-                    ./gradlew test || true
+                    sh gradlew test || true
                 '''
             }
         }
@@ -78,4 +76,3 @@ pipeline {
         }
     }
 }
-
