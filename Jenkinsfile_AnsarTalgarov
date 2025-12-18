@@ -10,8 +10,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/anscarterr/devops-project.git'
+                checkout scm
             }
         }
 
@@ -19,6 +18,7 @@ pipeline {
             steps {
                 sh '''
                     cd todoapp
+                    chmod +x gradlew
                     sh gradlew clean build -x test
                 '''
             }
@@ -26,22 +26,28 @@ pipeline {
 
         stage('Test') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    sh '''
-                        cd todoapp
-                        sh gradlew test
-                    '''
+                script {
+                    try {
+                        sh '''
+                            cd todoapp
+                            sh gradlew test
+                        '''
+                    } catch (err) {
+                        currentBuild.result = 'UNSTABLE'
+                        echo 'Tests failed (DB not available). Marking build as UNSTABLE.'
+                    }
                 }
             }
         }
 
-
         stage('Docker Build') {
             steps {
                 sh '''
+                    cd ${WORKSPACE}
                     docker build \
                       -f docker/Dockerfile_AnsarTalgarov \
-                      -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                      -t ${IMAGE_NAME}:${IMAGE_TAG} \
+                      .
                 '''
             }
         }
@@ -51,13 +57,11 @@ pipeline {
                 branch 'main'
             }
             steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerhub-creds',
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASS'
-                    )
-                ]) {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
                     sh '''
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
@@ -70,6 +74,9 @@ pipeline {
     post {
         success {
             echo 'CI/CD pipeline completed successfully!'
+        }
+        unstable {
+            echo 'Pipeline finished with UNSTABLE status (test failures allowed)'
         }
         failure {
             echo 'CI/CD pipeline failed!'
