@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    env_file:
+      - .env
+    volumes:
+      - todo_pgdata:/var/lib/postgresql/data
+    networks:
+      - todo_network
+
+  app:
+    image: tg/todo-app:1.1
+    container_name: todo_app
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - "8081:8080"
+    networks:
+      - todo_network
+
+volumes:
+  todo_pgdata:
+
+networks:
+  todo_network:
+    driver: bridge

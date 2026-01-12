@@ -1,0 +1,25 @@
+=== DevOps setup started ===
+Updating system...
+Installing Java 17, Gradle, Git...
+=== Installed versions ===
+Java version:
+openjdk version "17.0.17" 2025-10-21
+OpenJDK Runtime Environment (build 17.0.17+10-Ubuntu-122.04)
+OpenJDK 64-Bit Server VM (build 17.0.17+10-Ubuntu-122.04, mixed mode, sharing)
+Gradle version:
+
+------------------------------------------------------------
+Gradle 4.4.1
+------------------------------------------------------------
+
+Build time:   2012-12-21 00:00:00 UTC
+Revision:     none
+
+Groovy:       2.4.21
+Ant:          Apache Ant(TM) version 1.10.12 compiled on January 17 1970
+JVM:          17.0.17 (Ubuntu 17.0.17+10-Ubuntu-122.04)
+OS:           Linux 6.6.87.2-microsoft-standard-WSL2 amd64
+
+Git version:
+git version 2.34.1
+=== Setup completed successfully ===
